@@ -1,0 +1,25 @@
+{# default link selector #}
+
+<div class="jzlink-panel-candidates">
+	<div class="jzlink-media-selector">
+
+	{% if candidates|length > 0 %}
+		<ul class="jzlink-panel-list">
+		{% for candidate in candidates %}
+
+			<li data-id="{{ candidate.id }}" class="jzlink-entity-row jzlink-candidate-entity-row">
+				<a target="_blank" href="{% path candidate, 'reference' %}">{{ candidate.name }}</a>
+				<a class="jzlink-candidate-link-btn" href="{{ path('jgzzmedialinker_ajax_link', { 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':candidate.id }) }}" title="link entity: {{ candidate.name }}">
+					<img src="{{ asset('bundles/sonataadmin/famfamfam/link.png') }}" alt="link" />
+				</a>
+			</li>
+
+		{% endfor %}
+		</ul>
+
+	{% else %}
+	    <p class="label label-info">Sin candidatos</p>
+	{% endif %}
+
+	</div>
+</div>

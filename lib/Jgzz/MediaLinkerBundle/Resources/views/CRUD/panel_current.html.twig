@@ -1,0 +1,24 @@
+{# shows list of linked entities #}
+
+<div class="jzlink-panel-currents">
+
+	{# list of linked entities #}
+	{% if linkedEntities|length > 0 %}
+	<ul class="jzlink-panel-list">
+		{% for linked in linkedEntities %}
+
+		{% set linkedRowTemplate = jzlinker_row_template(linker) %}
+
+		<li data-id="{{ linked.id }}" class="jzlink-entity-row">
+			{% include linkedRowTemplate with { 'linked': linked, 'linker': linker, 'hostEntity': hostEntity } %}
+		</li>
+
+		{% endfor %}
+	</ul>
+
+	{% else %}
+	    <p class="label label-info">Sin documentos relacionados</p>
+	{% endif %}
+
+
+</div>

@@ -1,0 +1,37 @@
+{% block entity_row_top %}
+<span class="jzl_row">
+	<span class="jzl_row_cell_title">
+		<a target="_blank" href="#">{{ linked.id }}</a>
+	</span>
+{% endblock %}
+
+{% block entity_row_common_actions %}
+	<span class="jzl_row_cell">
+		<a class="jzlink-linked-edit-btn" href="{{ linker.getLinkedAdmin().generateObjectUrl('edit',linked) }}" title="edit linked entity: {{ linked.name }}">
+			<img src="{{ asset('bundles/sonataadmin/famfamfam/application_edit.png') }}" alt="edit" />
+		</a>
+
+		<a class="jzlink-linked-unlink-btn" href="{{ path('jgzzmedialinker_ajax_unlink', { 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':linked.id }) }}" title="unlink entity: {{ linked.name }}">
+			<img src="{{ asset('bundles/sonataadmin/famfamfam/link_break.png') }}" alt="unlink" />
+		</a>
+
+		<a class="jzlink-linked-del-btn" href="{{ path('jgzzmedialinker_ajax_delete', { 'linkername': linker.name, 'id':linked.id, 'host_id':hostEntity.id }) }}" title="remove linked entity: {{ linked.name }}">
+			<img src="{{ asset('bundles/sonataadmin/famfamfam/cross.png') }}" alt="remove" />
+		</a>
+	</span>
+{% endblock %}
+
+{% block entity_row_extension_actions %}
+	<span class="jzl_row_cell">
+	{% set extension_config = jzlinker_extension_config(linker) %}
+
+	{% for extname, extconfig in extension_config %}
+		<a class="jzlink-linked-action-btn" href="{{ path('jgzzmedialinker_ajax_extensionaction', 
+		{ 'action': extname, 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':linked.id }) }}" title="{{ extconfig.caption }}">{{ extconfig.caption }}</a>
+	{% endfor %}
+	</span>
+{% endblock %}
+
+{% block entity_row_bottom %}
+</span>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'JgzzMediaLinkerBundle:CRUD:linked_entity_row_base.html.twig' %}
+
+{% block entity_row_top %}
+<span class="jzl_row jzl_row_sonatamedia">
+	<span class="jzl_row_cell_title">
+		<a target="_blank" href="{{ path('sonata_media_download', { 'id': linked.id, 'format': 'reference' }) }}">{{ linked.name }}</a>
+	</span>
+{% endblock %}
+
+
+
+

@@ -1,0 +1,24 @@
+.jzl_row{
+	display: block;
+}
+.jzl_row_cell, .jzl_row_cell_title{
+	padding: 2px 4px;
+	display: inline-block;
+	vertical-align: top;
+}
+.jzl_row_cell_title{
+	width: 160px;
+}
+
+.jzl_row_sonatamedia{
+	
+}
+
+.jzlink-entity-row.disabled {
+	background: #F5F5F5;
+	color: #aaa;
+}
+.jzlink-entity-row.disabled a{
+	color: #aaa;
+	text-decoration: none;
+}

@@ -1,0 +1,518 @@
+<?php
+namespace Jgzz\MediaLinkerBundle\Controller;
+
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Jgzz\MediaLinkerBundle\Linker\Linker;
+
+/**
+ * Actions regarding the relation between a 'host' entity and a its 'related' ones
+ */
+class MediaLinkerController extends Controller
+{
+    /**
+     * Handles creation of related entity by an ajax Request.
+     * Render resulting panel to a variable, along with metadata on result
+     *
+     * @param  string $linkername
+     * @param  integer $host_id
+     * @return Response     json format
+     */
+    public function createAction($linkername, $host_id)
+    {
+        list($panel, $meta) = $this->renderFormPanelAndMetaInfo($linkername, $host_id);
+
+        $result = $meta['created'] ? 'ok' : 'error';
+        
+        $params = array(
+            'result' => $result, 
+            'action' => 'create', 
+            'id' => $host_id, 
+            'panel'=> $panel,
+            'urls' => $this->generateHostPanelRoutes($linkername, $host_id),
+            );
+
+        $form = $meta['form'];
+
+        if($form->isBound() && !$form->isValid()){
+            $params['error'] = $form->getErrorsAsString();
+        }
+
+        return $this->renderJson($params);
+    }
+
+    /**
+     * Removes linked media by id and linkername
+     * 
+     * @return Response     json format
+     */
+    public function deleteAction($linkername, $id, $host_id)
+    {
+        $linkedclass = $this->getLinker($linkername)->getLinkedClass();
+
+        $admin = $this->get('sonata.admin.pool')->getAdminByClass($linkedclass);
+
+        $object = $admin->getObject($id);
+
+        if (!$object) {
+            throw new NotFoundHttpException(sprintf('unable to find the object with id : %s', $id));
+        }
+
+        if (false === $admin->isGranted('DELETE', $object)) {
+            throw new AccessDeniedException('Access denied');
+        }
+
+        try {
+            // if object is Media, $admin must take care of removing files ...
+            $admin->delete($object);
+
+            $this->deleteEntityAssets($object);
+
+        } catch (\Exception $e) {
+            return $this->renderJson(array(
+                'result'=>'error', 
+                'error'=>'Error when trying to remove file from database: '.$e->getMessage(),
+                'urls'=>$this->generateHostPanelRoutes($linkername, $host_id),
+                ));
+        }
+
+        return $this->renderJson(array(
+            'result'=>'ok', 
+            'action'=>'delete', 
+            'id'=>$id, 
+            'class'=>$linkedclass,
+            'urls'=>$this->generateHostPanelRoutes($linkername, $host_id),
+            ));
+    }
+
+    /**
+     * Unlink two entities
+     * 
+     * @param  integer $host_id
+     * @param  string $hostclass
+     * @param  integer $linked_id
+     * @param  string $linkedclass
+     * @return Response     json format
+     */
+    public function unlinkAction($linkername, $host_id, $linked_id)
+    {
+        return $this->extensionAction($linkername, 'unlink', $host_id, $linked_id);
+    }
+
+    /**
+     * Links two entities
+     * 
+     * @param  string $linkername]
+     * @param  integer $host_id
+     * @param  integer $linked_id
+     * @return Response     json format
+     */
+    public function linkAction($linkername, $host_id, $linked_id)
+    {
+        return $this->extensionAction($linkername, 'link', $host_id, $linked_id);
+    }
+
+    /**
+     * Returns HTML panel of currently related entities
+     * 
+     * @param  string $linkername
+     * @param  integer $host_id
+     * @return string
+     */
+    public function currentAction($linkername, $host_id)
+    {
+        return new Response($this->renderPanel($linkername, $host_id));
+    }
+
+
+    /**
+     * Returns HTML panel of candidates to be linked by a host entity
+     * 
+     * @param  string $linkername
+     * @param  integer $host_id
+     * @return string
+     */
+    public function candidatesAction($linkername, $host_id)
+    {
+        return new Response($this->renderCandidatesPanel($linkername, $host_id));
+    }
+
+    /**
+     * Render current related entities panel
+     * 
+     * @param  [type] $linkername [description]
+     * @param  [type] $host_id    [description]
+     * @return [type]             [description]
+     */
+    public function renderPanel($linkername, $host_id)
+    {
+        $linker = $this->getLinker($linkername);
+        
+        $hostEntity = $linker->findHostById($host_id);
+
+        if(!$hostEntity){
+            throw new \Exception("No host entity found with id ".$host_id);
+        }
+        
+        return $this->container->get('templating')
+            ->render('JgzzMediaLinkerBundle:CRUD:panel_current.html.twig',
+            array(
+                'linkedEntities' => $linker->getLinkedEntities($hostEntity),
+                'hostEntity' => $hostEntity,
+                'linker' => $linker));
+    }
+
+    public function renderFormPanel($linkername, $host_id, $options = array())
+    {
+        list($panel, $meta) = $this->renderFormPanelAndMetaInfo($linkername, $host_id);
+
+        return $panel;
+    }
+
+    /**
+     * Render and process form
+     *
+     * @param  [type] $linkername [description]
+     * @param  [type] $host_id    [description]
+     * @param  array  $options    [description]
+     * @return [type]             [description]
+     */
+    public function renderFormPanelAndMetaInfo($linkername, $host_id, $options = array())
+    {
+        $linker = $this->getLinker($linkername);
+        
+        $hostclass = $linker->getHostClass();
+
+        $linkedclass = $linker->getLinkedClass();
+
+        $request = $this->get('request');
+
+        if (false === $linker->getLinkedAdmin()->isGranted('CREATE')) {
+            throw new AccessDeniedException();
+        }
+
+        $linkedEntity = $this->newLinkedInstance($linker);
+
+        $hostEntity = $linker->findHostById($host_id);
+
+        if(!$hostEntity){
+            throw new \Exception("No host entity found with id ".$host_id);
+        }
+
+        $linkedAdmin = $this->getAdmin(Linker::SIDE_LINKED, $linker);
+
+        /** @var $form \Symfony\Component\Form\Form */
+        $form = $linkedAdmin->getForm();
+
+        $form->setData($linkedEntity);
+
+        $created = false;
+
+        if ($request->getMethod() == 'POST') {
+
+            $form->bind($request);
+
+            $isFormValid = $form->isValid();
+
+            if($isFormValid){
+
+                $linker->linkToHost($linkedEntity, $hostEntity);
+
+                $linkedAdmin->create($form->getData());
+
+                $created = true;
+
+            } else {
+                $error = $form -> getErrors() ? $form -> getErrorsAsString() : null;
+            }
+        }
+
+        $parameters = $this->resolveTemplateActionParameters($linker);
+
+        $templateParams = array(
+            'error' => isset($error) ? $error : null,
+            'created' => $created,
+            'linkername' => $linkername,
+            'hostEntity' => $hostEntity,
+            'linker' => $linker,
+            'form' => $form->createView(),
+            'action_parameters' => $parameters,
+            // 'success_msg' => isset($success_msg) ? $success_msg : false,
+            );
+
+        // $this->container->get('twig')->getExtension('escaper')->setDefaultStrategy(false);
+
+        // render to string
+        $rendered = $this->container->get('templating'
+)            ->render('JgzzMediaLinkerBundle:CRUD:panel_form.html.twig', $templateParams);
+
+        return array($rendered, array('form'=>$form, 'created'=>$created));        
+    }
+
+    /**
+     * Renders control panel of candidates to be linked to an entity
+     * 
+     * @param  [type] $linkername [description]
+     * @param  [type] $host_id    [description]
+     * @return [type]             [description]
+     */
+    public function renderCandidatesPanel($linkername, $host_id, $options = array())
+    {
+        $linker = $this->getLinker($linkername);
+        
+        $hostclass = $linker->getHostClass();
+
+        $hostEntity = $this->getAdmin(Linker::SIDE_HOST, $linker)->getObject($host_id);
+
+        // fetcher configured for this linker
+        $candidateFetcher = $this->get('jgzz.medialinker.linkermanager')->getLinkerCandidateFetcher($linker);
+
+        $candidates = $candidateFetcher->getCandidates($linker, $host_id, $options);
+
+        return $this->container->get('templating')->render(
+            'JgzzMediaLinkerBundle:CRUD:panel_candidates.html.twig', 
+            array('linker'=>$linker,'candidates'=>$candidates, 'hostEntity'=>$hostEntity, 'options'=>$options)
+            );
+    }
+
+    public function doLinkOrUnlik(Linker $linker, $hostEntity, $linkedEntity, $action)
+    {
+        // special cases 'link' and 'unlink'
+        if($action == 'link'){
+            $linker->linkToHost($linkedEntity, $hostEntity);
+        } else if($action == 'unlink') {
+            $linker->unlinkFromHost($linkedEntity, $hostEntity);
+        }
+
+        $em = $this->get('doctrine')->getEntityManager();
+
+        $em->persist($hostEntity);
+
+        $em->persist($linkedEntity);
+
+        $em->flush();
+    }
+
+    /**
+     * Manages actions regarding an existent host and linked entity
+     * Control is given to this controller or custom (extension) controllers set by de Linker
+     * 
+     * @param  string $linkername [description]
+     * @param  string $action     [description]
+     * @param  integer $host_id    [description]
+     * @param  integer $linked_id  [description]
+     * @return Response
+     */
+    public function extensionAction($linkername, $action, $host_id, $linked_id)
+    {
+        $linker = $this->getLinker($linkername);
+        
+        $hostclass = $linker->getHostClass();
+
+        $linkedclass = $linker->getLinkedClass();
+
+        $hostEntity = $this->getAdmin(Linker::SIDE_HOST, $linker)->getObject($host_id);
+
+        if (!$hostEntity) {
+            throw new NotFoundHttpException(sprintf('unable to find host entity with id : %s', $host_id));
+        }
+
+        $linkedEntity = $this->getAdmin(Linker::SIDE_LINKED, $linker)->getObject($linked_id);
+
+        if (!$linkedEntity) {
+            throw new NotFoundHttpException(sprintf('unable to find linked entity with id : %s', $linked_id));
+        }
+
+        // resolve callable
+        // todo: take link and unlink to a LinkerActionsInterface class
+        if(in_array($action, array('link','unlink'))){
+
+            $action_callable = array($this,'doLinkOrUnlik');
+
+        } else {
+            $extension = $this->get('jgzz.medialinker.linkermanager')->getLinkerActionExtension($linker);
+
+            if(!$extension){
+                throw new \Exception("No controller is attached to the Linker in order to handle this custom action: ".$action);
+            }
+
+            $action_callable = array($extension, 'manageAction');
+        }
+
+        $response_template = array(
+            'action'    =>$action, 
+            'host_id'   =>$host_id, 
+            'id'        =>$linked_id, 
+            'urls'      =>$this->generateHostPanelRoutes($linkername, $host_id),
+            );
+
+        
+        try {
+
+            // TODO: interfaz...
+            $output = call_user_func_array($action_callable, array($linker, $hostEntity, $linkedEntity, $action));
+            // todo:add to json response
+            // $output 
+
+        } catch (Exception $e) {
+
+            return $this->renderJson(array_merge($response_template, array(
+                'result'    =>'error', 
+                'error'     => $e->getMessage(),
+                )));
+        }
+       
+        return $this->renderJson(array_merge($response_template, array(
+            'result'    =>'ok', 
+            )));
+    }
+
+
+
+    /**
+     * New Linked entity instance. Performs needed initializations
+     * 
+     * @param  Linker $linker
+     * @return mixed
+     */
+    public function newLinkedInstance(Linker $linker)
+    {
+        $linkedEntity = $linker->getLinkedAdmin()->getNewInstance();
+
+        $linker->getLinkedAdmin()->setSubject($linkedEntity);
+
+        // inject context and provider in media entity. asumes entity is a Media
+        // TODO: move specific logic
+        $fetcher = $this->get('jgzz.medialinker.linkermanager')->getLinkerCandidateFetcher($linker);
+
+        if ($fetcher instanceof \Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher) {
+
+            $fetcher_options = $fetcher->getOptions();
+
+            if(array_key_exists('provider', $fetcher_options)){
+                $linkedEntity->setProviderName($fetcher_options['provider']);
+            }
+            if(array_key_exists('context', $fetcher_options)){
+                $linkedEntity->setContext($fetcher_options['context']);
+            }
+        }
+
+        return $linkedEntity;
+    }
+
+    /**
+     * Delete assets related to the removed object
+     *
+     * (Media specific)
+     * 
+     * @param  Object $object
+     */
+    protected function deleteEntityAssets($object)
+    {
+        $provider = $this->get($object->getProviderName());
+
+        // código basado en BaseProvider::preRemove
+        $path = $provider->getReferenceImage($object);
+
+        if ($provider->getFilesystem()->has($path)) {
+            $provider->getFilesystem()->delete($path);
+        }
+    }
+
+    /**
+     * Parameters that must appear in the action url for creating new 
+     * related entities
+     * 
+     * eg: media context & provider
+     * 
+     * @param  Linker $linker
+     * @return array
+     */
+    public function resolveTemplateActionParameters(Linker $linker)
+    {
+        $params = array();
+
+        $fetcher = $this->get('jgzz.medialinker.linkermanager')->getLinkerCandidateFetcher($linker);
+
+        // TODO: move specific logic somewhere else..
+        
+        if($fetcher instanceof \Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher){
+            $options = $fetcher->getOptions();
+
+            if(array_key_exists('provider', $options)){
+                $params['provider'] = $options['provider'];
+            }
+            if(array_key_exists('context', $options)){
+                $params['context'] = $options['context'];
+            }
+        }
+
+        return $params;
+    }
+
+    public function getLinker($name)
+    {
+        return $this->get('jgzz.medialinker.linkermanager')->getLinker($name);
+    }
+
+
+    /**
+     * Gets the admin with the injected current Request
+     * and other initializations
+     * see SonataAdminBundle/Controller/CRUDController
+     *
+     * TODO: avoid more than one initialization of Admin class
+     * 
+     * @param  string $side
+     * @param  Linker $linker
+     * @return Admin
+     */
+    protected function getAdmin($side, Linker $linker)
+    {
+        $admin = $side == Linker::SIDE_HOST ? $linker->getHostAdmin() : $linker->getLinkedAdmin();
+
+        $request = $this->get('request');
+
+        // @see Sonata\AdminBundle\Controller\CRUDController::configure
+        // 
+        // sets the same uniqid as in request, otherwise a new one would be created and no data would be found
+        // on its name (in BindRequestListener)
+        if ($uniqid = $request->get('uniqid')) {
+            $admin->setUniqid($uniqid);
+        }
+
+        $admin->setRequest($request);
+
+        return $admin;
+    }
+
+    public function generateHostPanelRoutes($linkername, $host_id)
+    {
+        $params = array('linkername'=>$linkername, 'host_id'=>$host_id);
+
+        return array(   
+            'panel_currents' => $this->generateUrl('jgzzmedialinker_panel_current', $params),
+            'panel_form' => $this->generateUrl('jgzzmedialinker_panel_form', $params),
+            'panel_candidates' => $this->generateUrl('jgzzmedialinker_panel_candidates', $params),
+            );
+    }
+
+    // see Sonata\AdminBundle\Controller\CRUDController
+    public function renderJson($data, $status = 200, $headers = array())
+    {
+        // fake content-type so browser does not show the download popup when this
+        // response is rendered through an iframe (used by the jquery.form.js plugin)
+        //  => don't know yet if it is the best solution
+        if ($this->get('request')->get('_xml_http_request')
+            && strpos($this->get('request')->headers->get('Content-Type'), 'multipart/form-data') === 0) {
+            $headers['Content-Type'] = 'text/plain';
+        } else {
+            $headers['Content-Type'] = 'application/json';
+        }
+
+        return new Response(json_encode($data), $status, $headers);
+    } 
+    
+}

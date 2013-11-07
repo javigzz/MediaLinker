@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+<!--     <parameters>
+        <parameter key="jgzz_media_linker.example.class">Jgzz\MediaLinkerBundle\Example</parameter>
+    </parameters>
+ -->
+
+    <services>
+        <service id="jgzz.medialinker.linkermanager" class="Jgzz\MediaLinkerBundle\LinkerManager">
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <argument type="service" id="sonata.admin.pool" />
+        </service>
+
+        <service id="jgzz.medialinker.controller" class="Jgzz\MediaLinkerBundle\Controller\MediaLinkerController">
+            <call method="setContainer">
+                <argument type="service" id="service_container" />
+            </call>
+        </service>
+
+        <service id="jgzz.medialinker.twig.extension" class="Jgzz\MediaLinkerBundle\Twig\LinkerExtension">
+            <tag name="twig.extension" />
+            <argument type="service" id="jgzz.medialinker.controller" />
+            <argument type="service" id="jgzz.medialinker.linkermanager" />
+        </service>
+
+    </services>
+</container>

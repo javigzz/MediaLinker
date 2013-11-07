@@ -1,0 +1,20 @@
+{
+    "name": "jgzz/medialinkerbundle",
+    "keywords": ["sonata","admin"],
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name":     "Javier González",
+            "homepage": "http://javigzz.es",
+            "email":    "javigzz@yahoo.es"
+        }        
+    ],
+    "require": {
+        "php":             ">=5.3.0",
+        "symfony/symfony": ">=2.1",
+        "sonata-project/admin-bundle": ">=2.1",
+        "doctrine/orm": "~2.2,>=2.2.3,<2.4"
+    },
+    "target-dir" : "Jgzz/MediaLinkerBundle"
+}

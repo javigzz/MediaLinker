@@ -1,0 +1,21 @@
+{% set params = action_parameters|merge({ 'linkername': linker.name, 'host_id': hostEntity.id, 'uniqid': linker.getLinkedAdmin().uniqid }) %}
+{# ! uniqid of the linked entity Admin #}
+
+{% form_theme form 'SonataAdminBundle:Form:form_admin_fields.html.twig' %}
+
+<div class="jzlink-panel-form">
+
+{% if error %}<p class="alert alert-error">{{ error }}</p>{% endif %}
+
+{% if created %}<p class="alert alert-success">Documento creado</p>{% endif %}
+
+	<form class="jzlink-panel-form-form form-horizontal" 
+		action="{{ path('jgzzmedialinker_ajax_create', params) }}" 
+		method="post" enctype="multipart/form-data">
+
+		{{ form_rest(form) }}
+
+		<input class="btn btn-mini btn-primary jzlink-add-entity-submit" type="submit" value="Cargar"/>
+	</form>
+
+</div>
