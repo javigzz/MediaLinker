@@ -5,8 +5,7 @@ use Doctrine\ORM\QueryBuilder;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 
 /**
-* Helps fetching entities extended from sonata media entities.
-* Includes the notion of provider and context, usefull when filtering candidates
+* Fetches entities implementing Sonata\MediaBundle\Model\MediaInterface
 */
 class SonataMediaCandidateFetcher extends DoctrineCandidateFetcher {
 

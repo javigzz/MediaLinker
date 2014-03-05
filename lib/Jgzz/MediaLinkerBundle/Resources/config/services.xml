@@ -10,9 +10,18 @@
  -->
 
     <services>
+
+        <service id="jgzz.medialinker.builderfactory" class="Jgzz\MediaLinkerBundle\Builder\BuilderFactory">
+            <argument type="service" id="service_container" />
+        </service>
+        
+        <service id="jgzz.medialinker.candidatefetcherfactory" class="Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherFactory">
+        </service>
+        
         <service id="jgzz.medialinker.linkermanager" class="Jgzz\MediaLinkerBundle\LinkerManager">
             <argument type="service" id="doctrine.orm.entity_manager" />
-            <argument type="service" id="sonata.admin.pool" />
+            <argument type="service" id="jgzz.medialinker.builderfactory" />
+            <argument type="service" id="jgzz.medialinker.candidatefetcherfactory" />
         </service>
 
         <service id="jgzz.medialinker.controller" class="Jgzz\MediaLinkerBundle\Controller\MediaLinkerController">
@@ -25,6 +34,28 @@
             <tag name="twig.extension" />
             <argument type="service" id="jgzz.medialinker.controller" />
             <argument type="service" id="jgzz.medialinker.linkermanager" />
+        </service>
+
+        <!-- built in linker builders -->
+        <service id="jgzz.medialinker.sonata.builder" class="Jgzz\MediaLinkerBundle\Builder\SonataLinkerBuilder">
+            <tag name="jgzz.medialinker.linkermanager" />
+            <call method="setAdminPool">
+                <argument type="service" id="sonata.admin.pool" />
+            </call>
+        </service>
+
+        <service id="jgzz.medialinker.sonatamedia.builder" class="Jgzz\MediaLinkerBundle\Builder\SonataMediaLinkerBuilder">
+            <tag name="jgzz.medialinker.linkermanager" />
+            <call method="setAdminPool">
+                <argument type="service" id="sonata.admin.pool" />
+            </call>
+        </service>
+        
+        <!-- built in candidate fetchers -->
+        <service id="jgzz.medialinker.candidatefetcher.doctrine" class="Jgzz\MediaLinkerBundle\Candidate\DoctrineCandidateFetcher">
+        </service>
+
+        <service id="jgzz.medialinker.candidatefetcher.sonatamedia" class="Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher">
         </service>
 
     </services>

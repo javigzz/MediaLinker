@@ -4,7 +4,9 @@ namespace Jgzz\MediaLinkerBundle\Builder;
 use Doctrine\Common\Persistence\ObjectManager;
 
 /**
-* Base Linker Builder
+* Base LinkerBuilder.
+*
+* A LinkerBuilder is an object that creates and sets up a Linker.
 */
 abstract class LinkerBuilder
 {

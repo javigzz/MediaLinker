@@ -5,7 +5,7 @@ use Sonata\AdminBundle\Admin\Admin;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
-* Linker coupled with Sonata Admin classes for entity mappings ...
+* Linker coupled with Sonata Media linked entities
 */
 class SonataMediaLinker extends SonataLinker
 {

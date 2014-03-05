@@ -6,9 +6,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
+use Jgzz\MediaLinkerBundle\Linker\SonataLinker;
 
 /**
  * Actions regarding the relation between a 'host' entity and a its 'related' ones
+ * This controller works for entities linked through a SonataLinker since it user their 'Admins' 
+ * in several ways
+ * 
+ * @todo: decouple from 'Admins'
  */
 class MediaLinkerController extends Controller
 {
@@ -142,9 +147,9 @@ class MediaLinkerController extends Controller
     /**
      * Render current related entities panel
      * 
-     * @param  [type] $linkername [description]
-     * @param  [type] $host_id    [description]
-     * @return [type]             [description]
+     * @param  [type] $linkername
+     * @param  [type] $host_id   
+     * @return [type]            
      */
     public function renderPanel($linkername, $host_id)
     {
@@ -174,10 +179,10 @@ class MediaLinkerController extends Controller
     /**
      * Render and process form
      *
-     * @param  [type] $linkername [description]
-     * @param  [type] $host_id    [description]
-     * @param  array  $options    [description]
-     * @return [type]             [description]
+     * @param  [type] $linkername
+     * @param  [type] $host_id   
+     * @param  array  $options   
+     * @return [type]            
      */
     public function renderFormPanelAndMetaInfo($linkername, $host_id, $options = array())
     {
@@ -242,8 +247,6 @@ class MediaLinkerController extends Controller
             // 'success_msg' => isset($success_msg) ? $success_msg : false,
             );
 
-        // $this->container->get('twig')->getExtension('escaper')->setDefaultStrategy(false);
-
         // render to string
         $rendered = $this->container->get('templating'
 )            ->render('JgzzMediaLinkerBundle:CRUD:panel_form.html.twig', $templateParams);
@@ -254,9 +257,9 @@ class MediaLinkerController extends Controller
     /**
      * Renders control panel of candidates to be linked to an entity
      * 
-     * @param  [type] $linkername [description]
-     * @param  [type] $host_id    [description]
-     * @return [type]             [description]
+     * @param  string $linkername
+     * @param  integer $host_id   
+     * @return string             
      */
     public function renderCandidatesPanel($linkername, $host_id, $options = array())
     {
@@ -266,10 +269,9 @@ class MediaLinkerController extends Controller
 
         $hostEntity = $this->getAdmin(Linker::SIDE_HOST, $linker)->getObject($host_id);
 
-        // fetcher configured for this linker
-        $candidateFetcher = $this->get('jgzz.medialinker.linkermanager')->getLinkerCandidateFetcher($linker);
+        $fetcher = $this->getCandidateFetcher($linker);
 
-        $candidates = $candidateFetcher->getCandidates($linker, $host_id, $options);
+        $candidates = $fetcher->getCandidates($linker, $host_id, $options);
 
         return $this->container->get('templating')->render(
             'JgzzMediaLinkerBundle:CRUD:panel_candidates.html.twig', 
@@ -299,10 +301,10 @@ class MediaLinkerController extends Controller
      * Manages actions regarding an existent host and linked entity
      * Control is given to this controller or custom (extension) controllers set by de Linker
      * 
-     * @param  string $linkername [description]
-     * @param  string $action     [description]
-     * @param  integer $host_id    [description]
-     * @param  integer $linked_id  [description]
+     * @param  string $linkername
+     * @param  string $action    
+     * @param  integer $host_id   
+     * @param  integer $linked_id 
      * @return Response
      */
     public function extensionAction($linkername, $action, $host_id, $linked_id)
@@ -377,7 +379,7 @@ class MediaLinkerController extends Controller
      * @param  Linker $linker
      * @return mixed
      */
-    public function newLinkedInstance(Linker $linker)
+    public function newLinkedInstance(SonataLinker $linker)
     {
         $linkedEntity = $linker->getLinkedAdmin()->getNewInstance();
 
@@ -434,10 +436,9 @@ class MediaLinkerController extends Controller
     {
         $params = array();
 
-        $fetcher = $this->get('jgzz.medialinker.linkermanager')->getLinkerCandidateFetcher($linker);
+        $fetcher = $this->getCandidateFetcher($linker);
 
         // TODO: move specific logic somewhere else..
-        
         if($fetcher instanceof \Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher){
             $options = $fetcher->getOptions();
 
@@ -452,24 +453,29 @@ class MediaLinkerController extends Controller
         return $params;
     }
 
-    public function getLinker($name)
+    protected function getLinker($name)
     {
         return $this->get('jgzz.medialinker.linkermanager')->getLinker($name);
     }
 
+    protected function getCandidateFetcher(Linker $linker)
+    {
+        return $this->get('jgzz.medialinker.linkermanager')->getCandidateFetcher($linker);
+    }
+
 
     /**
-     * Gets the admin with the injected current Request
+     * Gets the Admin service for a SonataLiner with the injected current Request
      * and other initializations
      * see SonataAdminBundle/Controller/CRUDController
      *
-     * TODO: avoid more than one initialization of Admin class
+     * @todo: avoid more than one initialization of Admin class
      * 
      * @param  string $side
      * @param  Linker $linker
      * @return Admin
      */
-    protected function getAdmin($side, Linker $linker)
+    protected function getAdmin($side, SonataLinker $linker)
     {
         $admin = $side == Linker::SIDE_HOST ? $linker->getHostAdmin() : $linker->getLinkedAdmin();
 

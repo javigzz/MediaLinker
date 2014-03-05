@@ -5,11 +5,10 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherInterface;
 
 /**
- * Handles relation among two entites
+ * Holds the mapping info to link two entities. Performs linkages among entites
  */
 class Linker 
 {
-
 	const SIDE_HOST = 'host';
 
 	const SIDE_LINKED = 'linked';
@@ -45,8 +44,6 @@ class Linker
      */
     public function linkToHost($linkedEntity, $hostEntity)
     {
-        // $this->hostEntity = $hostEntity;
-
         // guess setter and sets
         call_user_func_array(array($linkedEntity, $this->guessSetter(self::SIDE_LINKED)), array($hostEntity));
 

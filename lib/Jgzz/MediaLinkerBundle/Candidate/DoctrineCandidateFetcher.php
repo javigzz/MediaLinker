@@ -1,16 +1,14 @@
 <?php
 namespace Jgzz\MediaLinkerBundle\Candidate;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\QueryBuilder;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 
 /**
-* Helps fetching entities elegible to be linked by a certain host entity
+* Fetches entities using a Doctrine Query
 */
 class DoctrineCandidateFetcher implements CandidateFetcherInterface
 {
-
 	protected $options = array();
 
 	public function setDefaultOptions(array $options)
@@ -25,6 +23,8 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 
 	/**
 	 * Get candidates
+	 *
+	 * @todo use for 'options'. override global fetcher options?
 	 * 
 	 * @param  Linker $linker
 	 * @param  integer $host_id
@@ -33,9 +33,7 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 	 */
 	public function getCandidates(Linker $linker, $host_id, $options = array())
 	{
-		// TODO: use for 'options'. override global fetcher options or query specific?
-		
-		// $this->options = array_merge($this->options, $options);
+		//?? $this->options = array_merge($this->options, $options);
 
 		$qb = $this->createQueryBuilder($linker, $host_id);
 
@@ -50,13 +48,11 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 	 * 
 	 * @param  Linker $linker
 	 * @param  integer $host_id
-	 * @param  integer $linked_id
 	 * @return QueryBuilder
 	 */
 	protected function createQueryBuilder(Linker $linker, $host_id)
 	{
 		$repo = $linker->linkedRepository();
-
 
 		$mapping = $linker->getLinkedMapping();
 
@@ -66,50 +62,29 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 
 		$already_linked_qb->select('l')
 			->innerJoin('l.'.$fieldName, 'h')
-			->where($already_linked_qb->expr()->eq('h.id',':host_id'))
-			;
+			->where($already_linked_qb->expr()->eq('h.id',':host_id'));
 
 		$qb = $repo->createQueryBuilder('linked');
 		$qb->select('linked','host')
 			->leftJoin('linked.'.$fieldName, 'host')
 			->where($qb->expr()->notIn('linked.id', $already_linked_qb->getDQL()))
 			->setParameter('host_id',$host_id);
-			;
+
+		$this->addCustomFilters($qb);
 
 		return $qb;
 	}
 
-	// protected function removeAlreadyLinkedToHost(Linker $linker, $result, $host_id)
-	// {
-	// 	$filteredRes = array();
+	private function addCustomFilters(QueryBuilder $qb)
+	{
+		if (!array_key_exists('filter', $this->options)) {
+			return;
+		}
 
-	// 	foreach ($result as $result) {
-	// 		$hosts_ids = $this->hostsIdsForLinkedEntity($linker, $result);
-	// 		if (!in_array($host_id, $hosts_ids)) {
-	// 			$filteredRes[] = $result;
-	// 		}
-	// 	}
-
-	// 	return $filteredRes;
-	// }
-
-	// /**
-	//  * @param  mixed $linkedEntity
-	//  * @return array
-	//  */
-	// protected function hostsIdsForLinkedEntity(Linker $linker, $linkedEntity)
-	// {
-	// 	$hosts = $linker->getHostEntities($linkedEntity);
-
-	// 	if(is_array($hosts) or ($hosts instanceof \Doctrine\Common\Collections\Collection)){
-	// 		$hosts_ids = array();
-	// 		foreach ($hosts as $host) {
-	// 			$hosts_ids[] = $host->getId();
-	// 		}
-	// 	} else {
-	// 		$hosts_ids = array($hosts->getId());
-	// 	}
-
-	// 	return $hosts_ids;
-	// }
+		foreach ($this->options['filter'] as $parameter => $value) {
+			$param_key = ':'.$parameter;
+			$qb->andWhere($qb->expr()->eq('linked.'.$parameter,$param_key))
+				->setParameter($param_key, $value);
+		}
+	}
 }

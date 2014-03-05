@@ -5,7 +5,7 @@ use Jgzz\MediaLinkerBundle\Linker\SonataLinker;
 use Doctrine\Common\Persistence\ObjectManager;
 
 /**
-* Builder for relations Sonata managed entities
+* Builder for creating a Linker among two entities for which a 'Sonata Admin' is defined
 */
 class SonataLinkerBuilder extends LinkerBuilder
 {

@@ -37,7 +37,7 @@ class JgzzMediaLinkerExtension extends Extension
                     $settings['linkedclass'], 
                     $settings['builder'], 
                     $settings['candidateFetcher'],
-                    $settings['fetcherOptions'],
+                    array_key_exists('fetcherOptions', $settings) ? $settings['fetcherOptions'] : array(),
                     $settings));
         }
     }

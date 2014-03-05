@@ -4,34 +4,36 @@ namespace Jgzz\MediaLinkerBundle;
 use Doctrine\Common\Persistence\ObjectManager;
 use Sonata\AdminBundle\Admin\Pool;
 
+use Jgzz\MediaLinkerBundle\Builder\BuilderFactory;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
-use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherInterface;
+use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherFactory;
 use Jgzz\MediaLinkerBundle\Actions\LinkerActionsInterface;
 
 /**
+* Central service for the bundle. Ties together building linkers and retrieving candidates
 * 
-* TODO: link by association name instead of linkedclass
+* @todo: link by association name instead of linkedclass (might be serveral associations to the same class)
 */
 class LinkerManager
 {
 
 	private $objectManager;
 
-	private $adminPool;
-
 	private $linkerConfigs = array();
 
 	private $linkerPool = array();
 
-	private $fetcherPool = array();
+	private $builderFactory;
 
-	function __construct(ObjectManager $objectManager, Pool $adminPool)
+	private $candidateFetcherPool;
+
+	function __construct(ObjectManager $objectManager, BuilderFactory $builderFactory, CandidateFetcherFactory $candidateFetcherPool)
 	{
 		$this->om = $objectManager;
 
-		// TODO: llevarlo a injección en sonatalinker directamente
-		// linkerManager no debe tener noción de adminPool
-		$this->adminPool = $adminPool;
+		$this->builderFactory = $builderFactory;
+
+		$this->candidateFetcherPool = $candidateFetcherPool;
 	}
 
 	/**
@@ -73,8 +75,7 @@ class LinkerManager
 	{
 		$config = $this->linkerConfigs[$name];
 
-		// builder may be different for one Linker
-		$builder = $this->getBuilder($config['builder']);
+		$builder = $this->builderFactory->get($config['builder']);
 
 		$hostclass = $config['hostclass'];
 		$linkedclass = $config['linkedclass'];
@@ -85,26 +86,11 @@ class LinkerManager
 		return $builder->buildLinker($name, $hostclass, $linkedclass, $this->om, $config);
 	}
 
-	/**
-	 * Gets builder by service name
-	 * TODO: builder factory ... inject builder service
-	 * 
-	 * @param  [type] $builderName [description]
-	 * @return [type]              [description]
-	 */
-	protected function getBuilder($builderName)
+	public function getCandidateFetcher(Linker $linker)
 	{
-		if($builderName == 'sonata.builder'){
-			$builder = new \Jgzz\MediaLinkerBundle\Builder\SonataLinkerBuilder();
-			$builder->setAdminPool($this->adminPool);
-		} elseif ($builderName == 'sonatamedia.builder'){
-			$builder = new \Jgzz\MediaLinkerBundle\Builder\SonataMediaLinkerBuilder();
-			$builder->setAdminPool($this->adminPool);
-		} else {
-			throw new \Exception("not implemented builder ". $builderName, 1);
-		}
+		$config =  $this->linkerConfigs[$linker->getName()];
 
-		return $builder;
+		return $this->candidateFetcherPool->get($linker, $config);
 	}
 
 	public function getLinkerRowTemplate(Linker $linker)
@@ -119,50 +105,6 @@ class LinkerManager
 		return $this->linkerConfigs[$linker->getName()];
 	}
 
-	/**
-	 * Candidate fetcher suited for $linker
-	 * 
-	 * @param  Linker $linker
-	 * @return CandidateFetcherInterface
-	 */
-	public function getLinkerCandidateFetcher(Linker $linker)
-	{
-		$linkername = $linker->getName();
-
-		if(array_key_exists($linkername, $this->fetcherPool)){
-			return $this->fetcherPool[$linkername];
-		}
-		
-		$config = $this->linkerConfigs[$linkername];
-
-		$fetcherName = $config['fetcherName'];
-
-		// TODO: fetcher factory...
-		// tag custom fetchers a linkermanager
-		
-		if($fetcherName == 'doctrine'){
-
-			$fetcher = new \Jgzz\MediaLinkerBundle\Candidate\DoctrineCandidateFetcher();
-
-		} else if($fetcherName == 'sonatamedia'){
-
-			$fetcher = new \Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher();
-
-		} else {
-			throw new \Exception("not implemented candidate fetcher ". $fetcherName, 1);
-			
-		}
-
-		$fetcherOptions = $config['fetcherOptions'];
-
-		if(!empty($fetcherOptions)){
-			$fetcher->setDefaultOptions($fetcherOptions);
-		}
-
-		$this->fetcherPool[$linkername] = $fetcher;
-
-		return $fetcher;
-	}
 
 	public function getLinkerActionExtension(Linker $linker)
 	{

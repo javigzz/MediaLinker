@@ -4,7 +4,7 @@ namespace Jgzz\MediaLinkerBundle\Linker;
 use Sonata\AdminBundle\Admin\Admin;
 
 /**
-* Linker coupled with Sonata Admin classes for entity mappings ...
+* Linker for connecting two entities managed by their 
 */
 class SonataLinker extends Linker
 {

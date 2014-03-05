@@ -7,8 +7,6 @@ use Jgzz\MediaLinkerBundle\Linker\Linker;
 
 class LinkerExtension extends \Twig_Extension {
 
-	// private $container;
-
 	private $mediaLinkerController;
 
 	private $linkerManager;
