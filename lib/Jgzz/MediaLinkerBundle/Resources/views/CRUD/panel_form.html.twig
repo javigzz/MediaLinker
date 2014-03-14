@@ -3,7 +3,10 @@
 
 {% form_theme form 'SonataAdminBundle:Form:form_admin_fields.html.twig' %}
 
-<div class="jzlink-panel-form">
+{# form panel:  
+	data-update-url holds de url the front script will need to update this panel from server
+#}
+<div class="jzlink-panel-form jgzlink-subpanel" data-update-url="{{ path('jgzzmedialinker_panel_form', { 'linkername': linker.name, 'host_id': hostEntity.id }) }}">
 
 {% if error %}<p class="alert alert-error">{{ error }}</p>{% endif %}
 

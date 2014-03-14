@@ -1,6 +1,9 @@
-{# shows list of linked entities #}
+{# current panel:  
+	shows list of currently linked entities
+	data-update-url holds de url the front script will need to update this panel from server
+#}
 
-<div class="jzlink-panel-currents">
+<div class="jzlink-panel-currents jgzlink-subpanel" data-update-url="{{ path('jgzzmedialinker_panel_current', { 'linkername': linker.name, 'host_id': hostEntity.id }) }}">
 
 	{# list of linked entities #}
 	{% if linkedEntities|length > 0 %}
@@ -19,6 +22,4 @@
 	{% else %}
 	    <p class="label label-info">Sin documentos relacionados</p>
 	{% endif %}
-
-
 </div>

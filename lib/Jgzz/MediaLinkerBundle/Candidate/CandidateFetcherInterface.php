@@ -4,8 +4,8 @@ namespace Jgzz\MediaLinkerBundle\Candidate;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 
 /**
- * Objects of this interface are able to retrieve a set of entities suited to be
- * linked to some 'host'
+ * Objects of this interface are able to retrieve a set of entities suitable to be
+ * linked to some 'host' entity
  */
 interface CandidateFetcherInterface {
 

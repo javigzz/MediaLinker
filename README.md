@@ -4,34 +4,55 @@ The aim of this bundle is to ease the generation of an asynchronous user interfa
 
 In this bundle, the 'host' entity is the one in which the interface is focused at a moment (of the entity you are editing). 'linked' entities are the entities connected to the first one through either ManyToMany or ManyToOne relations.
 
+ATTENTION: this bundle is not stable and may change a lot.
+
+
+# INSTALLATION
+
+- clone from gitHub
+- add composer.json
+
+    "autoload": {
+    ...
+        "Jgzz\\MediaLinkerBundle": "vendor/jgzz/jgzzmedialinker/lib"
+    }
+
+- dump autoload
+- add to AppKernel.php
+- add to routing.yml
+
+eg: 
+JgzzMediaLinkerBundle:
+  resource: "@JgzzMediaLinkerBundle/Resources/config/routing.yml"
+  prefix:   /admin
+
 
 
 # CONFIGURATION
 
 You may configure the serveral 'Linkers' you may need in your '''config.yml'''. Add the mapping information under the internal name of each Linker.
 
-eg: 'docsdeprod' is a Linker for relating some 'Media' entity (desdendent of Sonata Media entities)
+eg: 'product_docs' is a Linker for relating some 'DocMedia' entity (desdendent of Sonata Media entities) with some 'Product' entity
 
 Mapping: 
 
 - builder: compulsory. May be 'sonata.builder' (for entities handled by a Sonata Admin), 'sonatamedia.builder' (for linking to a Sonata Media Entity). Alternatively, any service name implementing the '''LinkerBuilder''' interface.
 
-- hostclass: host class for this linker
+- hostclass: host class for this linker (eg: Project\MyBundle\Entity\Product)
 
-- linkedclass: linked class for this linker
+- linkedclass: linked class for this linker (eg: Project\MyBundle\Entity\DocMedia)
 
-- candidateFetcher: fetcher to use for retrieving entities in the list 'linkable' list. May be 'doctrine' (default), or 'sonatamedia'
+- candidateFetcher: fetcher to use for retrieving entities in the 'linkable' list. May be 'doctrine' (default), or 'sonatamedia'.
 
-- fetcherOptions: optional setting. Further options passed to the '''Candidate Fetcher'''. For the '''sonatamedia''' CF you may pass 'provider' and 'context'
+- fetcherOptions: optional setting. Further options passed to the '''Candidate Fetcher'''. For the '''sonatamedia''' candidate fetcher you may pass 'provider' and 'context' options to filter the results.
 
 TODO: extend for custom fetchers
-TODO: allow basic arbitrary filters for 'doctrine' fetcher
 
 - row_template: template used for rendering the list of linked / candidate entities. You may extend the provided templates
 
 jgzz_media_linker:
     mappings:
-        docsdeprod:
+        product_docs:
             builder: sonatamedia.builder
             hostclass: Project\SiteBundle\Entity\Content
             linkedclass: Project\SiteBundle\Entity\Media
@@ -43,6 +64,5 @@ jgzz_media_linker:
 
 
 # TODOS
-- i18n mensajes interfaz
-- bloqueo de interfaz mientras acción se ejecuta (nivel de linea)
-- atributo 'name' en plantillas para linked
+- i18n
+- remove 'name' attribute in templates for linked entities (not media entities)

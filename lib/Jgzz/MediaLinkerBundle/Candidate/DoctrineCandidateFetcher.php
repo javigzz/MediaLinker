@@ -75,6 +75,9 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 		return $qb;
 	}
 
+	/**
+	 * Adds custom filters to the QueryBuilder. Filters passed in $options['filters']
+	 */
 	private function addCustomFilters(QueryBuilder $qb)
 	{
 		if (!array_key_exists('filter', $this->options)) {

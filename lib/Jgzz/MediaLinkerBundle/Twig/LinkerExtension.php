@@ -94,5 +94,4 @@ class LinkerExtension extends \Twig_Extension {
 
         return $extension->getConfig();
 	}
-
 }

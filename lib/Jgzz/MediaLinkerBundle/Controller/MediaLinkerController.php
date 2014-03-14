@@ -4,7 +4,6 @@ namespace Jgzz\MediaLinkerBundle\Controller;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 use Jgzz\MediaLinkerBundle\Linker\SonataLinker;
 
@@ -15,7 +14,7 @@ use Jgzz\MediaLinkerBundle\Linker\SonataLinker;
  * 
  * @todo: decouple from 'Admins'
  */
-class MediaLinkerController extends Controller
+class MediaLinkerController extends BaseController
 {
     /**
      * Handles creation of related entity by an ajax Request.
@@ -248,8 +247,8 @@ class MediaLinkerController extends Controller
             );
 
         // render to string
-        $rendered = $this->container->get('templating'
-)            ->render('JgzzMediaLinkerBundle:CRUD:panel_form.html.twig', $templateParams);
+        $rendered = $this->container->get('templating')
+        ->render('JgzzMediaLinkerBundle:CRUD:panel_form.html.twig', $templateParams);
 
         return array($rendered, array('form'=>$form, 'created'=>$created));        
     }
@@ -337,7 +336,7 @@ class MediaLinkerController extends Controller
             $extension = $this->get('jgzz.medialinker.linkermanager')->getLinkerActionExtension($linker);
 
             if(!$extension){
-                throw new \Exception("No controller is attached to the Linker in order to handle this custom action: ".$action);
+                throw new \Exception("No controller to handle this custom action: ".$action);
             }
 
             $action_callable = array($extension, 'manageAction');
@@ -387,7 +386,7 @@ class MediaLinkerController extends Controller
 
         // inject context and provider in media entity. asumes entity is a Media
         // TODO: move specific logic
-        $fetcher = $this->get('jgzz.medialinker.linkermanager')->getLinkerCandidateFetcher($linker);
+        $fetcher = $this->getCandidateFetcher($linker);
 
         if ($fetcher instanceof \Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher) {
 
@@ -493,32 +492,4 @@ class MediaLinkerController extends Controller
 
         return $admin;
     }
-
-    public function generateHostPanelRoutes($linkername, $host_id)
-    {
-        $params = array('linkername'=>$linkername, 'host_id'=>$host_id);
-
-        return array(   
-            'panel_currents' => $this->generateUrl('jgzzmedialinker_panel_current', $params),
-            'panel_form' => $this->generateUrl('jgzzmedialinker_panel_form', $params),
-            'panel_candidates' => $this->generateUrl('jgzzmedialinker_panel_candidates', $params),
-            );
-    }
-
-    // see Sonata\AdminBundle\Controller\CRUDController
-    public function renderJson($data, $status = 200, $headers = array())
-    {
-        // fake content-type so browser does not show the download popup when this
-        // response is rendered through an iframe (used by the jquery.form.js plugin)
-        //  => don't know yet if it is the best solution
-        if ($this->get('request')->get('_xml_http_request')
-            && strpos($this->get('request')->headers->get('Content-Type'), 'multipart/form-data') === 0) {
-            $headers['Content-Type'] = 'text/plain';
-        } else {
-            $headers['Content-Type'] = 'application/json';
-        }
-
-        return new Response(json_encode($data), $status, $headers);
-    } 
-    
 }

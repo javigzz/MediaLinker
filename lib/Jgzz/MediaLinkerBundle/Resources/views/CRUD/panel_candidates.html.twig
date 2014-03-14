@@ -1,7 +1,8 @@
-{# default link selector #}
+{# candidates panel:
+	data-update-url holds de url the front script will need to update this panel from server
+#}
 
-<div class="jzlink-panel-candidates">
-	<div class="jzlink-media-selector">
+<div class="jzlink-panel-candidates jgzlink-subpanel" data-update-url="{{ path('jgzzmedialinker_panel_candidates', { 'linkername': linker.name, 'host_id': hostEntity.id }) }}">
 
 	{% if candidates|length > 0 %}
 		<ul class="jzlink-panel-list">
@@ -9,7 +10,7 @@
 
 			<li data-id="{{ candidate.id }}" class="jzlink-entity-row jzlink-candidate-entity-row">
 				<a target="_blank" href="{% path candidate, 'reference' %}">{{ candidate.name }}</a>
-				<a class="jzlink-candidate-link-btn" href="{{ path('jgzzmedialinker_ajax_link', { 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':candidate.id }) }}" title="link entity: {{ candidate.name }}">
+				<a class="jzlink-call jzlink-candidate-link" href="{{ path('jgzzmedialinker_ajax_link', { 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':candidate.id }) }}" title="link entity: {{ candidate.name }}">
 					<img src="{{ asset('bundles/sonataadmin/famfamfam/link.png') }}" alt="link" />
 				</a>
 			</li>
@@ -21,5 +22,4 @@
 	    <p class="label label-info">Sin candidatos</p>
 	{% endif %}
 
-	</div>
 </div>
