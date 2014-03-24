@@ -26,7 +26,7 @@
 	{% set extension_config = jzlinker_extension_config(linker) %}
 
 	{% for extname, extconfig in extension_config %}
-		<a class="jzlink-linked-action" href="{{ path('jgzzmedialinker_ajax_extensionaction', 
+		<a class="jzlink-call jzlink-linked-action" href="{{ path('jgzzmedialinker_ajax_extensionaction', 
 		{ 'action': extname, 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':linked.id }) }}" title="{{ extconfig.caption }}">{{ extconfig.caption }}</a>
 	{% endfor %}
 	</span>
