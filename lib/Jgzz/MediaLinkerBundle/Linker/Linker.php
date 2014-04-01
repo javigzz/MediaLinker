@@ -44,10 +44,17 @@ class Linker
      */
     public function linkToHost($linkedEntity, $hostEntity)
     {
-        // guess setter and sets
-        call_user_func_array(array($linkedEntity, $this->guessSetter(self::SIDE_LINKED)), array($hostEntity));
-
         $mapping_from_linked = $this->getLinkedMapping();
+
+        // guess setter and sets
+        
+        // set host for linked entity
+        $host_setter_prefix = ($mapping_from_linked['type'] == \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY) 
+            ? 'add_'
+            : 'set_';
+
+        $host_setter = $this->guesserFactory(self::SIDE_LINKED, $host_setter_prefix);
+        call_user_func_array(array($linkedEntity, $host_setter), array($hostEntity));
 
         // if many to many, host class must also have a setter for linked entity
         if ($mapping_from_linked['type'] == \Doctrine\ORM\Mapping\ClassMetadataInfo::MANY_TO_MANY) {

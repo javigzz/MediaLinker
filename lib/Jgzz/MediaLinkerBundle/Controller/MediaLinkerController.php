@@ -218,13 +218,12 @@ class MediaLinkerController extends BaseController
 
             $form->bind($request);
 
-            $isFormValid = $form->isValid();
-
-            if($isFormValid){
+            if($form->isValid()){
 
                 $linker->linkToHost($linkedEntity, $hostEntity);
 
-                $linkedAdmin->create($form->getData());
+                $linkedAdmin->create($linkedEntity);
+                // $linkedAdmin->create($form->getData());
 
                 $created = true;
 
