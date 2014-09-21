@@ -2,6 +2,7 @@
 namespace Jgzz\MediaLinkerBundle\Builder;
 
 use Symfony\Component\DependencyInjection\Container;
+use Jgzz\MediaLinkerBundle\Builder\LinkerBuilder;
 
 /**
  * Factory for LinkerBuilders.
@@ -25,7 +26,7 @@ class BuilderFactory {
 	 * Returns a LinkerBuilder by its serviceName
 	 * 
 	 * @param  string $builderName		Name of the builder. May be a service name implementing
-	 * @return Jgzz\MediaLinkerBundle\Builder
+	 * @return LinkerBuilder
 	 */
 	public function get($builderName)
 	{

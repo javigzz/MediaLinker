@@ -2,19 +2,22 @@
 namespace Jgzz\MediaLinkerBundle\Candidate;
 
 use Jgzz\MediaLinkerBundle\Linker\Linker;
-use Jgzz\MediaLinkerBundle\CandidateFetcher\CandidateFetcherInterface;
+use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherInterface;
+use Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher;
+use Jgzz\MediaLinkerBundle\Candidate\DoctrineCandidateFetcher;
 
 class CandidateFetcherFactory {
 
 	private $fetcherPool = array();
 
-	/**
-	 * Returns candidate fetcher suited for $linker
-	 * 
-	 * @param  Linker $linker
-	 * @return CandidateFetcherInterface
-	 */
-	public function get(Linker $linker, $config)
+    /**
+     * Returns candidate fetcher suited for $linker
+     *
+     * @param Linker $linker
+     * @param $config
+     * @return DoctrineCandidateFetcher|SonataMediaCandidateFetcher
+     */
+    public function get(Linker $linker, $config)
 	{
 		$linkername = $linker->getName();
 
@@ -26,15 +29,15 @@ class CandidateFetcherFactory {
 
 		if($fetcherName == 'sonatamedia'){
 
-			$fetcher = new \Jgzz\MediaLinkerBundle\Candidate\SonataMediaCandidateFetcher();
+			$fetcher = new SonataMediaCandidateFetcher();
 
 		} else if($fetcherName == 'doctrine'){
 
-			$fetcher = new \Jgzz\MediaLinkerBundle\Candidate\DoctrineCandidateFetcher();
+			$fetcher = new DoctrineCandidateFetcher();
 
 		} else {
 
-			throw new \Exception("not implemented candidate fetcher ". $fetcherName);
+            $fetcher = new $fetcherName();
 		}
 
 		$fetcherOptions = $config['fetcherOptions'];

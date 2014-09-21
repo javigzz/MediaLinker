@@ -2,7 +2,6 @@
 namespace Jgzz\MediaLinkerBundle\Linker;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherInterface;
 
 /**
  * Holds the mapping info to link two entities. Performs linkages among entites
