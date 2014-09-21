@@ -4,6 +4,8 @@ namespace Jgzz\MediaLinkerBundle\Controller;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Sonata\MediaBundle\Model\Media;
+use Sonata\AdminBundle\Admin\Admin;;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 use Jgzz\MediaLinkerBundle\Linker\SonataLinker;
 
@@ -49,13 +51,19 @@ class MediaLinkerController extends BaseController
 
     /**
      * Removes linked media by id and linkername
-     * 
-     * @return Response     json format
+     *
+     * @param $linkername
+     * @param $id
+     * @param $host_id
+     * @return Response
+     * @throws \Symfony\Component\Security\Core\Exception\AccessDeniedException
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      */
     public function deleteAction($linkername, $id, $host_id)
     {
         $linkedclass = $this->getLinker($linkername)->getLinkedClass();
 
+        /** @var Admin $admin */
         $admin = $this->get('sonata.admin.pool')->getAdminByClass($linkedclass);
 
         $object = $admin->getObject($id);
@@ -72,7 +80,10 @@ class MediaLinkerController extends BaseController
             // if object is Media, $admin must take care of removing files ...
             $admin->delete($object);
 
-            $this->deleteEntityAssets($object);
+            if ($object instanceof Media) {
+                // warning: smell like should split in specific controller
+                $this->deleteEntityAssets($object);
+            }
 
         } catch (\Exception $e) {
             return $this->renderJson(array(
@@ -187,10 +198,6 @@ class MediaLinkerController extends BaseController
     {
         $linker = $this->getLinker($linkername);
         
-        $hostclass = $linker->getHostClass();
-
-        $linkedclass = $linker->getLinkedClass();
-
         $request = $this->get('request');
 
         if (false === $linker->getLinkedAdmin()->isGranted('CREATE')) {
@@ -403,17 +410,15 @@ class MediaLinkerController extends BaseController
     }
 
     /**
-     * Delete assets related to the removed object
-     *
-     * (Media specific)
+     * Delete assets related to the removed Media object
      * 
      * @param  Object $object
      */
-    protected function deleteEntityAssets($object)
+    protected function deleteEntityAssets(Media $object)
     {
         $provider = $this->get($object->getProviderName());
 
-        // código basado en BaseProvider::preRemove
+        // see: BaseProvider::preRemove
         $path = $provider->getReferenceImage($object);
 
         if ($provider->getFilesystem()->has($path)) {
@@ -451,6 +456,10 @@ class MediaLinkerController extends BaseController
         return $params;
     }
 
+    /**
+     * @param $name
+     * @return Linker
+     */
     protected function getLinker($name)
     {
         return $this->get('jgzz.medialinker.linkermanager')->getLinker($name);
@@ -471,10 +480,11 @@ class MediaLinkerController extends BaseController
      * 
      * @param  string $side
      * @param  Linker $linker
-     * @return Admin
+     * @return \Sonata\AdminBundle\Admin\Admin
      */
     protected function getAdmin($side, SonataLinker $linker)
     {
+        /** @var Admin $admin */
         $admin = $side == Linker::SIDE_HOST ? $linker->getHostAdmin() : $linker->getLinkedAdmin();
 
         $request = $this->get('request');
