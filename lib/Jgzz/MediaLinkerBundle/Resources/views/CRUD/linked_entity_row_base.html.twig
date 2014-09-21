@@ -7,7 +7,7 @@
 
 {% block entity_row_common_actions %}
 	<span class="jzl_row_cell">
-		<a class="jzlink-call jzlink-linked-edit" href="{{ linker.getLinkedAdmin().generateObjectUrl('edit',linked) }}" title="edit linked entity: {{ linked.name }}">
+		<a class="jzlink-linked-edit" href="{{ linker.getLinkedAdmin().generateObjectUrl('edit',linked) }}" title="edit linked entity: {{ linked.name }}">
 			<img src="{{ asset('bundles/sonataadmin/famfamfam/application_edit.png') }}" alt="edit" />
 		</a>
 

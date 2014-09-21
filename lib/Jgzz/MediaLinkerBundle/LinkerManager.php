@@ -7,6 +7,7 @@ use Sonata\AdminBundle\Admin\Pool;
 use Jgzz\MediaLinkerBundle\Builder\BuilderFactory;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherFactory;
+use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherInterface;
 use Jgzz\MediaLinkerBundle\Actions\LinkerActionsInterface;
 
 /**
@@ -86,7 +87,11 @@ class LinkerManager
 		return $builder->buildLinker($name, $hostclass, $linkedclass, $this->om, $config);
 	}
 
-	public function getCandidateFetcher(Linker $linker)
+    /**
+     * @param Linker $linker
+     * @return CandidateFetcherInterface
+     */
+    public function getCandidateFetcher(Linker $linker)
 	{
 		$config =  $this->linkerConfigs[$linker->getName()];
 

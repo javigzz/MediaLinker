@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 use Jgzz\MediaLinkerBundle\Linker\SonataLinker;
+use Jgzz\MediaLinkerBundle\Candidate\CandidateFetcherInterface;
 
 /**
  * Actions regarding the relation between a 'host' entity and a its 'related' ones
@@ -451,14 +452,30 @@ class MediaLinkerController extends BaseController
         return $params;
     }
 
+    /**
+     * @param $name
+     * @return Linker
+     */
     protected function getLinker($name)
     {
-        return $this->get('jgzz.medialinker.linkermanager')->getLinker($name);
+        return $this->getLinkerManager()->getLinker($name);
     }
 
+    /**
+     * @param Linker $linker
+     * @return CandidateFetcherInterface
+     */
     protected function getCandidateFetcher(Linker $linker)
     {
-        return $this->get('jgzz.medialinker.linkermanager')->getCandidateFetcher($linker);
+        return $this->getLinkerManager()->getCandidateFetcher($linker);
+    }
+
+    /**
+     * @return \Jgzz\MediaLinkerBundle\LinkerManager
+     */
+    protected function getLinkerManager()
+    {
+        return $this->get('jgzz.medialinker.linkermanager');
     }
 
 
