@@ -91,6 +91,7 @@ jgzz_media_linker:
                 context: default
                 provider: sonata.media.provider.file
             row_template: JgzzMediaLinkerBundle:CRUD:linked_entity_row_base.html.twig.html.twig
+            form_theme: SonataDoctrineORMAdminBundle:Form:form_admin_fields.html.twig
 ```
 
 Mapping: 

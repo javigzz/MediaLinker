@@ -9,7 +9,7 @@
 		{% for candidate in candidates %}
 
 			<li data-id="{{ candidate.id }}" class="jzlink-entity-row jzlink-candidate-entity-row">
-				<a target="_blank" href="{% path candidate, 'reference' %}">{{ candidate.name }}</a>
+                {{ candidate.name }}
 				<a class="jzlink-call jzlink-candidate-link" href="{{ path('jgzzmedialinker_ajax_link', { 'linkername': linker.name, 'host_id':hostEntity.id, 'linked_id':candidate.id }) }}" title="link entity: {{ candidate.name }}">
 					<img src="{{ asset('bundles/sonataadmin/famfamfam/link.png') }}" alt="link" />
 				</a>

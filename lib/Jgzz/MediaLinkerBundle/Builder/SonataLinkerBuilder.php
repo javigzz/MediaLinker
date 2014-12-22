@@ -21,7 +21,7 @@ class SonataLinkerBuilder extends LinkerBuilder
 	 * 
 	 * @param  string $hostclass
 	 * @param  string $linkedclass
-	 * @return Jgzz\MediaLinkerBundle\Linker
+	 * @return SonataLinker
 	 */
 	public function buildLinker($name, $hostclass, $linkedclass, ObjectManager $om, $options = array())
 	{

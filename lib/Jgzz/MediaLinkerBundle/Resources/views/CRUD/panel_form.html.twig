@@ -1,7 +1,7 @@
 {% set params = action_parameters|merge({ 'linkername': linker.name, 'host_id': hostEntity.id, 'uniqid': linker.getLinkedAdmin().uniqid }) %}
 {# ! uniqid of the linked entity Admin #}
 
-{% form_theme form 'SonataAdminBundle:Form:form_admin_fields.html.twig' %}
+{% form_theme form jzlinker_form_theme(linker) %}
 
 {# form panel:  
 	data-update-url holds de url the front script will need to update this panel from server

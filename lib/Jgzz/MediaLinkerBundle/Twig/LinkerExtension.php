@@ -28,6 +28,7 @@ class LinkerExtension extends \Twig_Extension {
 			'jzlinker_render_panel_form' => new \Twig_Function_Method($this, 'renderFormPanel'),
 			'jzlinker_render_panel_candidates' => new \Twig_Function_Method($this, 'renderCandidatesMediaPanel'),
 			'jzlinker_row_template' => new \Twig_Function_Method($this, 'linkedRowTemplate'),
+			'jzlinker_form_theme' => new \Twig_Function_Method($this, 'getLinkerFormTheme'),
 			'jzlinker_extension_config' => new \Twig_Function_Method($this, 'getExtensionConfig'),
 			'jzlinker_linker_manager' => new \Twig_Function_Method($this, 'getLinkerManager'),
 		);
@@ -94,4 +95,15 @@ class LinkerExtension extends \Twig_Extension {
 
         return $extension->getConfig();
 	}
+
+    /**
+     * @param Linker $linker
+     * @return string
+     */
+    public function getLinkerFormTheme(Linker $linker)
+    {
+        $config = $this->linkerManager->getLinkerConfig($linker);
+
+        return $config['form_theme'];
+    }
 }
