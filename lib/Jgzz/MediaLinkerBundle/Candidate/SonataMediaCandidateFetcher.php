@@ -1,7 +1,6 @@
 <?php
 namespace Jgzz\MediaLinkerBundle\Candidate;
 
-use Doctrine\ORM\QueryBuilder;
 use Jgzz\MediaLinkerBundle\Linker\Linker;
 
 /**
@@ -31,6 +30,8 @@ class SonataMediaCandidateFetcher extends DoctrineCandidateFetcher {
 			$qb->andWhere($qb->expr()->eq('linked.context',':context'))
 				->setParameter('context',$options['context']);
 		}
+
+        $qb->orderBy('linked.name', 'ASC');
 
 		return $qb;
 	}

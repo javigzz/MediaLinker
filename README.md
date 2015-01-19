@@ -6,8 +6,6 @@ In this bundle, the `host` entity is the one in which the interface is focused a
 
 ATTENTION: this bundle is not stable and may change a lot.
 
-DO NOT USE THIS OUT OF A FIREWALL SINCE NO ACCESS CONTROL LAYER IS IMPLEMENTED
-
 # Installation
 
 - clone from gitHub
@@ -90,6 +88,10 @@ jgzz_media_linker:
             fetcherOptions:
                 context: default
                 provider: sonata.media.provider.file
+                filter:
+                    fieldname: fieldvalue
+                orderBy:
+                    fieldname: ASC/DESC
             row_template: JgzzMediaLinkerBundle:CRUD:linked_entity_row_base.html.twig.html.twig
             form_theme: SonataDoctrineORMAdminBundle:Form:form_admin_fields.html.twig
 ```
@@ -105,7 +107,6 @@ Mapping:
 - `candidateFetcher`: fetcher to use for retrieving entities in the 'linkable' list. May be 'doctrine' (default), or 'sonatamedia'.
 
 - `fetcherOptions`: optional setting. Further options passed to the '''Candidate Fetcher'''. For the '''sonatamedia''' candidate fetcher you may pass 'provider' and 'context' options to filter the results.
-
 
 - `row_template`: template used for rendering the list of linked / candidate entities. You may extend the provided templates
 
@@ -155,11 +156,10 @@ Renders panel with a list of candidate entities to be linked to the 'host' entit
 </div>
 ```
 
-NOTE: for them to be releted one to another the panles must be enclosed by the same `<div class="jzlink-panel">`.
-
+NOTE: for them to be related one to another the panels must be enclosed by the same `<div class="jzlink-panel">`.
 
 
 # TODOS
 - i18n
-- security layer
 - remove 'name' attribute in templates for linked entities (not media entities)
+- add ordering config options

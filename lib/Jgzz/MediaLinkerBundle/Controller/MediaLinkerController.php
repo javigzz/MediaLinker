@@ -105,12 +105,11 @@ class MediaLinkerController extends BaseController
 
     /**
      * Unlink two entities
-     * 
-     * @param  integer $host_id
-     * @param  string $hostclass
-     * @param  integer $linked_id
-     * @param  string $linkedclass
-     * @return Response     json format
+     *
+     * @param $linkername
+     * @param $host_id
+     * @param $linked_id
+     * @return Response json format
      */
     public function unlinkAction($linkername, $host_id, $linked_id)
     {
@@ -123,7 +122,7 @@ class MediaLinkerController extends BaseController
      * @param  string $linkername]
      * @param  integer $host_id
      * @param  integer $linked_id
-     * @return Response     json format
+     * @return Response json format
      */
     public function linkAction($linkername, $host_id, $linked_id)
     {
@@ -157,10 +156,11 @@ class MediaLinkerController extends BaseController
 
     /**
      * Render current related entities panel
-     * 
-     * @param  [type] $linkername
-     * @param  [type] $host_id   
-     * @return [type]            
+     *
+     * @param string $linkername
+     * @param int $host_id
+     * @return mixed
+     * @throws \Exception
      */
     public function renderPanel($linkername, $host_id)
     {

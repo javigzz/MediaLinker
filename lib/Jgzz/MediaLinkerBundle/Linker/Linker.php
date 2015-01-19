@@ -97,14 +97,19 @@ class Linker
 
     /**
      * Collection of entities linked to the host
-     * 
-     * @return \Doctrine\Common\Collections\Collection 
+     *
+     * @param object $hostEntity
+     * @return mixed
      */
     public function getLinkedEntities($hostEntity)
     {
         return $this->getAllLinkedEntities($hostEntity);
     }
 
+    /**
+     * @param object $hostEntity
+     * @return mixed
+     */
     protected function getAllLinkedEntities($hostEntity)
     {
         $getter = $this->guesserFactory(Linker::SIDE_HOST, 'get_');
@@ -114,7 +119,7 @@ class Linker
     /**
      *
      * 
-     * @param  [type] $linkedEntity [description]
+     * @param object $linkedEntity
      * @return mixed
      */
     public function getHostEntities($linkedEntity)
@@ -123,6 +128,10 @@ class Linker
     	return call_user_func(array($linkedEntity, $getter));
     }
 
+    /**
+     * @param int $id
+     * @return object
+     */
     public function findHostById($id)
     {
     	return $this->hostRepository()->findOneBy(array('id'=>$id));

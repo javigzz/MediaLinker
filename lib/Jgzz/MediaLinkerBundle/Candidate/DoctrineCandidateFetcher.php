@@ -72,13 +72,15 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 
 		$this->addCustomFilters($qb);
 
+        $this->addCustomOrderBy($qb);
+
 		return $qb;
 	}
 
-	/**
-	 * Adds custom filters to the QueryBuilder. Filters passed in $options['filters']
-	 */
-	private function addCustomFilters(QueryBuilder $qb)
+    /**
+     * @param QueryBuilder $qb
+     */
+    private function addCustomFilters(QueryBuilder $qb)
 	{
 		if (!array_key_exists('filter', $this->options)) {
 			return;
@@ -90,4 +92,19 @@ class DoctrineCandidateFetcher implements CandidateFetcherInterface
 				->setParameter($param_key, $value);
 		}
 	}
+
+    /**
+     * @param QueryBuilder $qb
+     */
+    private function addCustomOrderBy(QueryBuilder $qb)
+    {
+        if (!array_key_exists('orderBy', $this->options)) {
+            return;
+        }
+
+        foreach ($this->options['orderBy'] as $field => $order) {
+            $order = $order == 'DESC' ? 'DESC' : 'ASC';
+            $qb->orderBy('linked.' . $field, $order);
+        }
+    }
 }
